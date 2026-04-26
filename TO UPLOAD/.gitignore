@@ -1,0 +1,11 @@
+node_modules
+build
+dist
+*.log
+.DS_Store
+ios/App/Pods
+ios/App/App.xcworkspace/xcuserdata
+android/app/build
+android/.gradle
+.gemini
+.verdent
