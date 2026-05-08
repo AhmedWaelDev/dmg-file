@@ -578,7 +578,7 @@
                 style="font-size: 11px; text-transform: uppercase; opacity: 0.7; margin-bottom: 4px; display: block;"><i
                   class="fa-solid fa-location-dot"></i> Indirizzo
                 Azienda</label>
-              <input id="companyAddress" value="Tromello via Garlasco 5">
+              <input id="companyAddress" value="Via Calabria 16 -27029 VIGEVANO (PV)">
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <div>
@@ -1221,7 +1221,7 @@ I termini di consegna sono indicativi e non impegnano la ditta venditrice</texta
       targetCtx.fillText(doc.totalHeader, 1960, 1325);
       targetCtx.restore();
 
-      const compact = rows.length > 5;
+      const compact = rows.length > 8;
       const rowFont = compact ? '700 27px Arial, sans-serif' : '700 29px Arial, sans-serif';
       const rowStep = compact ? 50 : 58;
       let rowY = 1418;
@@ -1248,25 +1248,28 @@ I termini di consegna sono indicativi e non impegnano la ditta venditrice</texta
       });
 
       targetCtx.restore();
+      return rowY;
     }
 
-    function drawTotalSection(targetCtx) {
-      drawSeparator(targetCtx, 92, 1750, 1870);
+    function drawTotalSection(targetCtx, y) {
+      const separatorY = Math.max(y + 20, 1750); // Ensure it doesn't move too high
+      drawSeparator(targetCtx, 92, separatorY, 1870);
       const doc = documentStrings();
       targetCtx.save();
       targetCtx.fillStyle = "#111111";
       targetCtx.textBaseline = "top";
       targetCtx.font = state.language === "it" ? '700 37px Arial, sans-serif' : '700 34px Arial, sans-serif';
       targetCtx.textAlign = "left";
-      targetCtx.fillText(doc.totalLabel, 90, 1845);
+      targetCtx.fillText(doc.totalLabel, 90, separatorY + 95);
       const amountX = 90 + targetCtx.measureText(doc.totalLabel).width + 42;
-      targetCtx.fillText(money(totalValue()), amountX, 1845);
+      targetCtx.fillText(money(totalValue()), amountX, separatorY + 95);
       targetCtx.restore();
+      return separatorY + 180;
     }
 
-    function drawFooterSection(targetCtx) {
+    function drawFooterSection(targetCtx, startY) {
       const footer = FOOTER_CONTENT[state.language];
-      let y = 2035;
+      let y = Math.max(startY, 2035);
 
       const headingText = $("footerHeading").value.trim();
       const deliveryText = $("footerDelivery").value.trim();
@@ -1316,9 +1319,9 @@ I termini di consegna sono indicativi e non impegnano la ditta venditrice</texta
       drawCompanyBlock(targetCtx);
       drawClientBlock(targetCtx);
       drawSubjectSection(targetCtx);
-      drawTableSection(targetCtx);
-      drawTotalSection(targetCtx);
-      drawFooterSection(targetCtx);
+      const tableEndY = drawTableSection(targetCtx);
+      const totalEndY = drawTotalSection(targetCtx, tableEndY);
+      drawFooterSection(targetCtx, totalEndY);
     }
 
     function renderPage() {
@@ -1437,11 +1440,10 @@ I termini di consegna sono indicativi e non impegnano la ditta venditrice</texta
               directory: Directory.Cache
             });
 
-            // Trigger native share sheet
+            // Trigger native share sheet with the file itself
             await Share.share({
               title: 'Condividi Preventivo',
-              text: 'Ecco il tuo preventivo: ' + fileName,
-              url: savedFile.uri,
+              files: [savedFile.uri],
               dialogTitle: 'Invia o Salva Preventivo'
             });
 
@@ -1620,10 +1622,11 @@ I termini di consegna sono indicativi e non impegnano la ditta venditrice</texta
       loadState();
 
       // Migration for company address
-      const oldAddress = "Via Tromello via Garlasco 5";
-      const newAddress = "Tromello via Garlasco 5";
-      if ($("companyAddress").value === oldAddress) {
-        $("companyAddress").value = newAddress;
+      const targetAddress = "Via Calabria 16 -27029 VIGEVANO (PV)";
+      const oldAddresses = ["Via Tromello via Garlasco 5", "Tromello via Garlasco 5"];
+      const currentAddr = $("companyAddress").value;
+      if (!currentAddr.trim() || oldAddresses.includes(currentAddr)) {
+        $("companyAddress").value = targetAddress;
         saveState();
       }
 
