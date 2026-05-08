@@ -1468,6 +1468,7 @@ I termini di consegna sono indicativi e non impegnano la ditta venditrice</texta
     }
 
     async function downloadPng() {
+      saveState();
       renderPage();
       const stamp = new Date().toISOString().replace(/[:.]/g, "-");
       const fileName = `preventivo_${stamp}.png`;
@@ -1502,6 +1503,7 @@ I termini di consegna sono indicativi e non impegnano la ditta venditrice</texta
     }
 
     async function savePdf() {
+      saveState();
       renderPage();
       try {
         setStatus(currentStrings().preparingPdf);
